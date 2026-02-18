@@ -1,5 +1,5 @@
 // Configuration
-const EXCEL_FILE_PATH = 'IPQC Records (5).xlsx';
+const EXCEL_FILE_PATH = 'https://script.google.com/macros/s/AKfycbzQ5mJy0xHcOYqUSuOrK4PpHaiEq8TaBJjSklkMT60UValpu3Ph2CvH2KqZ25hcEOLE/exec';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
 // State
