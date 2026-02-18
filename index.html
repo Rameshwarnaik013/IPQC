@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPQC Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Scripts -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.7/dayjs.min.js"></script>
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 0 0% 100%;
+                --foreground: 222.2 84% 4.9%;
+                --card: 0 0% 100%;
+                --card-foreground: 222.2 84% 4.9%;
+                --popover: 0 0% 100%;
+                --popover-foreground: 222.2 84% 4.9%;
+                --primary: 221.2 83.2% 53.3%;
+                --primary-foreground: 210 40% 98%;
+                --secondary: 210 40% 96.1%;
+                --secondary-foreground: 222.2 47.4% 11.2%;
+                --muted: 210 40% 96.1%;
+                --muted-foreground: 215.4 16.3% 46.9%;
+                --accent: 210 40% 96.1%;
+                --accent-foreground: 222.2 47.4% 11.2%;
+                --destructive: 0 84.2% 60.2%;
+                --destructive-foreground: 210 40% 98%;
+                --border: 214.3 31.8% 91.4%;
+                --input: 214.3 31.8% 91.4%;
+                --ring: 221.2 83.2% 53.3%;
+                --radius: 0.5rem;
+            }
+            .dark {
+                --background: 222.2 84% 4.9%;
+                --foreground: 210 40% 98%;
+                --card: 222.2 84% 4.9%;
+                --card-foreground: 210 40% 98%;
+                --popover: 222.2 84% 4.9%;
+                --popover-foreground: 210 40% 98%;
+                --primary: 217.2 91.2% 59.8%;
+                --primary-foreground: 222.2 47.4% 11.2%;
+                --secondary: 217.2 32.6% 17.5%;
+                --secondary-foreground: 210 40% 98%;
+                --muted: 217.2 32.6% 17.5%;
+                --muted-foreground: 215 20.2% 65.1%;
+                --accent: 217.2 32.6% 17.5%;
+                --accent-foreground: 210 40% 98%;
+                --destructive: 0 62.8% 30.6%;
+                --destructive-foreground: 210 40% 98%;
+                --border: 217.2 32.6% 17.5%;
+                --input: 217.2 32.6% 17.5%;
+                --ring: 212.7 26.8% 83.9%;
+            }
+        }
+        @layer base {
+          * {
+            @apply border-border;
+          }
+          body {
+            @apply bg-background text-foreground;
+          }
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="w-64 border-r border-border bg-card hidden md:flex flex-col fixed md:relative z-50 h-full transition-transform duration-300 -translate-x-full md:translate-x-0">
+            <div class="p-6 flex items-center justify-between">
+                <h2 class="text-xl font-bold flex items-center gap-2 text-primary">
+                    <i class="fa-solid fa-chart-line"></i> IPQC Dashboard
+                </h2>
+                <button id="close-sidebar" class="md:hidden text-muted-foreground hover:text-foreground">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 px-4 py-2 space-y-6 overflow-y-auto">
+                <!-- Date Filters -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date Range</h3>
+                    <div class="flex flex-col gap-2">
+                        <button
+                            class="filter-btn active w-full text-left px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            data-range="today">Today</button>
+                        <button
+                            class="filter-btn w-full text-left px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            data-range="yesterday">Yesterday</button>
+                        <button
+                            class="filter-btn w-full text-left px-4 py-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground text-sm font-medium"
+                            data-range="last7">Last 7 Days</button>
+                    </div>
+                </div>
+
+                <!-- Custom Range -->
+                <div class="space-y-3">
+                    <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Custom Range</h3>
+                    <div class="space-y-2">
+                        <input type="date" id="start-date"
+                            class="w-full px-3 py-2 bg-background border rounded-md text-sm focus:ring-2 focus:ring-ring focus:outline-none">
+                        <input type="date" id="end-date"
+                            class="w-full px-3 py-2 bg-background border rounded-md text-sm focus:ring-2 focus:ring-ring focus:outline-none">
+                        <button id="apply-custom-date"
+                            class="w-full bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors">Apply
+                            Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-border bg-muted/20">
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-muted-foreground text-center mb-2">
+                        Updated: <span id="update-time" class="font-mono">--:--</span>
+                    </p>
+                    <button id="refresh-data"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-input rounded-md hover:bg-accent hover:text-accent-foreground text-sm transition-colors">
+                        <i class="fa-solid fa-sync"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
+            <!-- Header -->
+            <header
+                class="h-16 border-b border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 flex items-center justify-between z-40 sticky top-0">
+                <div class="flex items-center gap-4">
+                    <button id="toggle-sidebar"
+                        class="md:hidden p-2 text-muted-foreground hover:text-foreground rounded-md">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-lg md:text-xl font-semibold">Dashboard Overview</h1>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-muted-foreground hidden sm:inline">Theme:</span>
+                        <select id="theme-select"
+                            class="bg-card border border-border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none cursor-pointer hover:bg-accent transition-colors">
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                        </select>
+                    </div>
+
+                    <div class="relative group">
+                        <button
+                            class="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors shadow-sm">
+                            <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Export</span>
+                        </button>
+                        <div
+                            class="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md shadow-lg overflow-hidden hidden group-hover:block transition-all z-50">
+                            <a href="#" id="export-csv"
+                                class="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground">CSV
+                                Format</a>
+                            <a href="#" id="export-xlsx"
+                                class="block px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground">Excel
+                                (.xlsx)</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+
+                <!-- KPI Section -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <!-- Overall Card -->
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden"
+                        id="kpi-overall">
+                        <div class="absolute right-0 top-0 p-6 opacity-5">
+                            <i class="fa-solid fa-check-circle text-6xl"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="text-sm font-medium text-muted-foreground mb-1">Overall Compliance</div>
+                            <div class="text-3xl font-bold tracking-tight value">--%</div>
+                            <div class="mt-1 text-xs text-emerald-500 font-medium flex items-center gap-1 trend">
+                                <i class="fa-solid fa-arrow-up"></i> Target: 100%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Non-Compliant Card -->
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden"
+                        id="kpi-non-compliant">
+                        <div class="absolute right-0 top-0 p-6 opacity-5">
+                            <i class="fa-solid fa-exclamation-triangle text-6xl"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="text-sm font-medium text-muted-foreground mb-1">Non-Compliant Cases</div>
+                            <div class="text-3xl font-bold tracking-tight text-destructive value">--</div>
+                            <div class="mt-1 text-xs text-destructive font-medium trend">Requires Action</div>
+                        </div>
+                    </div>
+
+                    <!-- Total Batches -->
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow"
+                        id="kpi-total-batches">
+                        <div class="text-sm font-medium text-muted-foreground mb-1">Total Batches</div>
+                        <div class="text-3xl font-bold tracking-tight value">--</div>
+                        <div class="mt-1 text-xs text-muted-foreground trend">Checked in Period</div>
+                    </div>
+
+                    <!-- Leakage Card -->
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 hover:shadow-md transition-shadow"
+                        id="kpi-leakage">
+                        <div class="text-sm font-medium text-muted-foreground mb-1">Leakage Compliance</div>
+                        <div class="text-3xl font-bold tracking-tight value">--%</div>
+                        <div class="mt-1 text-xs text-muted-foreground trend">Specific Parameter</div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div
+                        class="bg-card rounded-xl border border-border shadow-sm p-6 col-span-1 lg:col-span-2 chart-card">
+                        <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-primary"></i> Daily Non-Compliance Trend
+                        </h3>
+                        <div class="relative h-80 w-full">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 chart-card">
+                        <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-primary"></i> Product Analysis
+                        </h3>
+                        <div class="relative h-72 w-full">
+                            <canvas id="productChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-xl border border-border shadow-sm p-6 chart-card">
+                        <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-primary"></i> Parameter Breakdown
+                        </h3>
+                        <div class="relative h-72 w-full">
+                            <canvas id="parameterChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="bg-card rounded-xl border border-border shadow-sm overflow-hidden mb-8">
+                    <div
+                        class="p-6 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <h3 class="text-lg font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-primary"></i> Non-Compliant Records
+                        </h3>
+
+                        <div class="flex items-center gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:flex-none">
+                                <i
+                                    class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm"></i>
+                                <input type="text" id="table-search" placeholder="Search batch, product..."
+                                    class="pl-9 pr-4 py-2 w-full sm:w-64 bg-background border border-border rounded-md text-sm focus:ring-2 focus:ring-ring focus:outline-none">
+                            </div>
+                            <select id="table-filter"
+                                class="bg-background border border-border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none">
+                                <option value="all">All Parameters</option>
+                                <option value="Lumps">Lumps</option>
+                                <option value="Leakage Test">Leakage Test</option>
+                                <option value="Nitrogen Flush">Nitrogen Flush</option>
+                                <option value="Oxygen % Check">Oxygen % Check</option>
+                                <option value="Pack & Seal Integrity">Pack & Seal Integrity</option>
+                                <option value="Material Uniformity (Mixing)">Material Uniformity</option>
+                                <option value="Size Uniformity (Slice of Mixes)">Size Uniformity</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="data-table">
+                            <thead class="bg-muted/50 text-xs uppercase text-muted-foreground font-semibold">
+                                <tr>
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Batch Code</th>
+                                    <th class="px-6 py-4">Product Name</th>
+                                    <th class="px-6 py-4">Issue Details</th>
+                                    <th class="px-6 py-4">Checked By</th>
+                                    <th class="px-6 py-4 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                <!-- Rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        class="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <span id="page-info" class="text-sm text-muted-foreground">Showing 0-0 of 0</span>
+                        <div class="flex items-center gap-2">
+                            <button id="prev-page"
+                                class="p-2 border border-border rounded-md hover:bg-accent disabled:opacity-50 transition-colors">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button id="next-page"
+                                class="p-2 border border-border rounded-md hover:bg-accent disabled:opacity-50 transition-colors">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden glassmorphism"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <style>
+        .filter-btn.active {
+            @apply bg-primary text-primary-foreground;
+        }
+    </style>
+</body>
+
+</html>
