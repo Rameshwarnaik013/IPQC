@@ -1,5 +1,5 @@
 // Configuration
-const EXCEL_FILE_PATH = 'https://script.google.com/macros/s/AKfycbzQ5mJy0xHcOYqUSuOrK4PpHaiEq8TaBJjSklkMT60UValpu3Ph2CvH2KqZ25hcEOLE/exec';
+const DATA_SOURCE_URL = 'https://script.google.com/macros/s/AKfycbzQ5mJy0xHcOYqUSuOrK4PpHaiEq8TaBJjSklkMT60UValpu3Ph2CvH2KqZ25hcEOLE/exec';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 
 // State
@@ -161,7 +161,7 @@ function initEventListeners() {
 // Data Fetching
 async function fetchData() {
     try {
-        const response = await fetch(EXCEL_FILE_PATH);
+        const response = await fetch(DATA_SOURCE_URL);
         if (!response.ok) throw new Error("Failed to load data from Google Sheets");
 
         const jsonData = await response.json();

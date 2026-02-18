@@ -1,10 +1,15 @@
-This dashboard requires a local web server to function correctly because it needs to fetch the local Excel file (`IPQC Records (5).xlsx`). Browsers block direct file access for security reasons.
+IPQC INDORE DASHBOARD
+
+This dashboard fetches live data from a Google Apps Script Web App.
+Data Source: https://script.google.com/macros/s/AKfycbzQ5mJy0xHcOYqUSuOrK4PpHaiEq8TaBJjSklkMT60UValpu3Ph2CvH2KqZ25hcEOLE/exec
 
 ### How to Run
 
+Although the data is fetched from online, it is recommended to run this on a local server to ensure all dashboard features (like loading modules) work correctly.
+
 **Option 1: Using Python (Recommended)**
 1. Open a terminal/command prompt in this folder.
-2. Run: 
+2. Run:
    - `python -m http.server` (for Python 3)
    - OR `python -m SimpleHTTPServer` (for Python 2)
 3. Open your browser and go to: `http://localhost:8000`
@@ -19,5 +24,5 @@ This dashboard requires a local web server to function correctly because it need
 2. Right-click `index.html` and select "Open with Live Server".
 
 ### Notes
-- The dashboard automatically data every 30 seconds.
-- Ensure the Excel file name matches `IPQC Records (5).xlsx` exactly.
+- The dashboard automatically refreshes data every 30 seconds.
+- Ensure you have an active internet connection to fetch the live data.
