@@ -1,0 +1,9 @@
+# Excel Files
+*.xlsx
+*.xls
+*.csv
+
+# System Files
+Thumbs.db
+Desktop.ini
+~$*
